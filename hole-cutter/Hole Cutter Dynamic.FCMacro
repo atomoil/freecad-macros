@@ -63,26 +63,6 @@ def addHolePart (x, y, size, lineWidth):
 	outers.append(outerSupport2)
 
 
-def addHolePartNoBlade (x, y, size, lineWidth):
-
-	# lineWidth = 0.1
-	# size = 5
-
-	outer = App.ActiveDocument.addObject("Part::Cylinder","Outer")
-	outer.Radius = str(size) + ' mm'
-	outer.Height = '8 mm'
-
-	inner = App.ActiveDocument.addObject("Part::Cylinder","Inner")
-	inner.Radius = str(size-(lineWidth*2)) + ' mm'
-	inner.Height = '11 mm'
-
-	inner.Placement = App.Placement(App.Vector(x,y,0),App.Rotation(App.Vector(0,0,1),1))
-	outer.Placement = App.Placement(App.Vector(x,y,0),App.Rotation(App.Vector(0,0,1),1))
-
-	inners.append(inner)
-	outers.append(outer)
-
-
 def groupHolesIntoStencil():
 
 	# group the shapes
@@ -97,25 +77,11 @@ def groupHolesIntoStencil():
 	stencil.Tool = innerGroup
 
 
-def createTestHoles1():
-
-	addHolePartNoBlade(30,-20, 4, 0.1)
-	addHolePartNoBlade(30,-10, 4, 0.15)
-	addHolePartNoBlade(30,0, 4, 0.2)
-	addHolePartNoBlade(30,10,4, 0.25)
-	addHolePartNoBlade(30,20,4, 0.3)
-	addHolePartNoBlade(30,30,4, 0.4)
-	addHolePartNoBlade(30,40,4, 0.5)
-
-
-def createTestHoles2():
-
-	addHolePart(30,10,4, 0.25)
-	addHolePart(30,20,4, 0.275)
-	addHolePart(30,30,4, 0.3)
-	addHolePart(30,40,4, 0.325)
-	addHolePart(30,50,4, 0.35)
-	addHolePart(30,60,4, 0.375)
+def trig(x, y, angle, distance):
+	theta = math.radians(angle+90)
+	x = x + (math.sin(theta) * distance)
+	y = y + (math.cos(theta) * distance)
+	return (x,y)
 
 
 def createGridOfHoles(mx, my, holeSize, gridSize):
@@ -134,12 +100,6 @@ def createGridOfHoles(mx, my, holeSize, gridSize):
 	basePlate.Length = str(mx*gridSize*2)
 	basePlate.Width = str(my*gridSize*2)
 
-
-def trig(x, y, angle, distance):
-	theta = math.radians(angle+90)
-	x = x + (math.sin(theta) * distance)
-	y = y + (math.cos(theta) * distance)
-	return (x,y)
 
 
 def createCircleOfHoles():
@@ -190,61 +150,6 @@ def createFan():
 	createLineOfHoles(cx,cy-60,12,distanceOuter,12)
 
 
-def createFanAlmost():
-	cx = 10
-	cy = 95
-	distanceInner = 200
-	distanceMiddle = 175
-	distanceOuter = 150
-
-	basePlate.Length = '210 mm'
-	basePlate.Width = '190 mm'
-
-
-	createLineOfHoles(cx,cy+60,-12,distanceOuter,12)
-	createLineOfHoles(cx+5,cy+51,-10,distanceOuter,8)
-	createLineOfHoles(cx,cy+40,-8,distanceMiddle,14)
-	createLineOfHoles(cx+5,cy+30,-6,distanceMiddle,10)
-	createLineOfHoles(cx,cy+20,-4,distanceInner,16)
-	createLineOfHoles(cx+7,cy+10,-2.5,distanceInner-2,10)
-	createLineOfHoles(cx,cy,0, distanceInner+2,13)
-	createLineOfHoles(cx+7,cy-10,2.5,distanceInner-2,10)
-	createLineOfHoles(cx,cy-20,4,distanceInner,16)
-	createLineOfHoles(cx+5,cy-30,6,distanceMiddle,10)
-	createLineOfHoles(cx,cy-40,8,distanceMiddle,14)
-	createLineOfHoles(cx+5,cy-51,10,distanceOuter,8)
-	createLineOfHoles(cx,cy-60,12,distanceOuter,12)
-
-
-
-def createFanOld():
-	cx = 10
-	cy = 105
-	distanceInner = 200
-	distanceMiddle = 175
-	distanceOuter = 150
-
-	basePlate.Length = '210 mm'
-	basePlate.Width = '210 mm'
-
-
-	createLineOfHoles(cx,cy+60,-12,distanceOuter,12)
-	createLineOfHoles(cx,cy+50,-10,distanceOuter,14)
-	createLineOfHoles(cx,cy+40,-8,distanceMiddle,14)
-	createLineOfHoles(cx,cy+30,-6,distanceMiddle,16)
-	createLineOfHoles(cx,cy+20,-4,distanceInner,16)
-	createLineOfHoles(cx,cy+10,-2,distanceInner,18)
-	createLineOfHoles(cx,cy,0, distanceInner+5,12)
-	createLineOfHoles(cx,cy-10,2,distanceInner,18)
-	createLineOfHoles(cx,cy-20,4,distanceInner,16)
-	createLineOfHoles(cx,cy-30,6,distanceMiddle,16)
-	createLineOfHoles(cx,cy-40,8,distanceMiddle,14)
-	createLineOfHoles(cx,cy-50,10,distanceOuter,14)
-	createLineOfHoles(cx,cy-60,12,distanceOuter,12)
-
-
-#createTestHoles1()
-# createTestHoles2()
 createGridOfHoles(5,5,4,5)
 # createCircleOfHoles()
 # createFan()
