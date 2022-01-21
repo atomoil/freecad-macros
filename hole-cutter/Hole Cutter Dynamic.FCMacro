@@ -32,10 +32,6 @@ def addHolePart (x, y, size, lineWidth):
 	outer.Radius = str(outerSize) + ' mm'
 	outer.Height = '10 mm'
 
-	outerBlade = App.ActiveDocument.addObject("Part::Cylinder","OuterBlade")
-	outerBlade.Radius = str(bladeSize) + ' mm'
-	outerBlade.Height = '10.4 mm'
-
 	outerSupport1 = App.ActiveDocument.addObject("Part::Cylinder","OuterSupportLow")
 	outerSupport1.Radius = str(outerSupportSize) + ' mm'
 	outerSupport1.Height = str(baseHeight+0.25) + ' mm'
@@ -52,13 +48,11 @@ def addHolePart (x, y, size, lineWidth):
 
 	inner.Placement = placement
 	outer.Placement = placement
-	outerBlade.Placement = placement
 	outerSupport1.Placement = placement
 	outerSupport2.Placement = placement
 
 	inners.append(inner)
 	outers.append(outer)
-	outers.append(outerBlade)
 	outers.append(outerSupport1)
 	outers.append(outerSupport2)
 
