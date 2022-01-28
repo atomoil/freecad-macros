@@ -61,6 +61,54 @@ def addHolePart (x, y, size, lineWidth):
 	outers.append(outerSupport2)
 
 
+def createBoxViaSketcher(x,y,angle,distance,nearRadius,farRadius):
+
+	sketch = App.activeDocument().addObject('Sketcher::SketchObject', 'BaseSketch')
+
+	nearL = trig(x,y,angle-90,nearRadius)
+	nearR = trig(x,y,angle+90,nearRadius)
+	(farX, farY) = trig(x,y,angle,distance)
+	farL = trig(farX,farY,angle-90,farRadius)
+	farR = trig(farX,farY,angle+90,farRadius)
+
+	edges = [nearL, farL, farR, nearR]
+	countPoints = len(edges)
+
+	geoList = []
+	for i in range(countPoints):
+		j = i+1
+		if j >= countPoints:
+			j = 0
+
+		(x1, y1) = edges[i]
+		(x2, y2) = edges[j]
+		pt1 = App.Vector(x1,y1)
+		pt2 = App.Vector(x2,y2)
+		line = Part.LineSegment(pt1,pt2)
+		geoList.append(line)
+
+	sketch.addGeometry(geoList,False)
+	extrude = App.activeDocument().addObject('Part::Extrusion','ExtrudedBaseSketch')
+	extrude.Base = sketch
+	extrude.Solid = True
+	extrude.LengthFwd = baseHeight
+
+	# stop rendering the sketch as it doesn't hide properly
+	sketch.Visibility = False
+
+	bases.append(extrude)
+	
+	# >>> extrude.DirMode = "Normal"
+	# >>> extrude.DirLink = None
+	# >>> extrude.LengthFwd = 10.000000000000000
+	# >>> extrude.LengthRev = 0.000000000000000
+	# >>> 
+	# >>> extrude.Reversed = False
+	# >>> extrude.Symmetric = False
+	# >>> extrude.TaperAngle = 0.000000000000000
+	# >>> extrude.TaperAngleRev = 0.000000000000000
+	
+
 def groupHolesIntoStencil():
 
 	# group the shapes
@@ -152,53 +200,6 @@ def createFan():
 	createLineOfHoles(cx+5,cy-50,10.3,distanceOuter-5,8)
 	createLineOfHoles(cx,cy-60,12,distanceOuter,12)
 
-
-def createBoxViaSketcher(x,y,angle,distance,nearRadius,farRadius):
-
-	sketch = App.activeDocument().addObject('Sketcher::SketchObject', 'BaseSketch')
-
-	nearL = trig(x,y,angle-90,nearRadius)
-	nearR = trig(x,y,angle+90,nearRadius)
-	(farX, farY) = trig(x,y,angle,distance)
-	farL = trig(farX,farY,angle-90,farRadius)
-	farR = trig(farX,farY,angle+90,farRadius)
-
-	edges = [nearL, farL, farR, nearR]
-	countPoints = len(edges)
-
-	geoList = []
-	for i in range(countPoints):
-		j = i+1
-		if j >= countPoints:
-			j = 0
-
-		(x1, y1) = edges[i]
-		(x2, y2) = edges[j]
-		pt1 = App.Vector(x1,y1)
-		pt2 = App.Vector(x2,y2)
-		line = Part.LineSegment(pt1,pt2)
-		geoList.append(line)
-
-	sketch.addGeometry(geoList,False)
-	extrude = App.activeDocument().addObject('Part::Extrusion','ExtrudedBaseSketch')
-	extrude.Base = sketch
-	extrude.Solid = True
-	extrude.LengthFwd = baseHeight
-
-	# stop rendering the sketch as it doesn't hide properly
-	sketch.Visibility = False
-
-	bases.append(extrude)
-	
-	# >>> extrude.DirMode = "Normal"
-	# >>> extrude.DirLink = None
-	# >>> extrude.LengthFwd = 10.000000000000000
-	# >>> extrude.LengthRev = 0.000000000000000
-	# >>> 
-	# >>> extrude.Reversed = False
-	# >>> extrude.Symmetric = False
-	# >>> extrude.TaperAngle = 0.000000000000000
-	# >>> extrude.TaperAngleRev = 0.000000000000000
 
 
 # createGridOfHoles(5,5,4,5)
