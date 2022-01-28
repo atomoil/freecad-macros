@@ -5,19 +5,13 @@ import Part
 import math
 
 
-baseHeight = 1
+baseHeight = 1.25
 
 
 bases = []
 inners = []
 outers = []
 
-sketch = App.activeDocument().addObject('Sketcher::SketchObject', 'BaseSketch')
-extrude = App.activeDocument().addObject('Part::Extrusion','ExtrudedBaseSketch')
-extrude.Base = sketch
-extrude.Solid = True
-sketch.Visibility = False
-bases.append(extrude)
 
 # basePlate = App.ActiveDocument.addObject("Part::Box","Box")
 # basePlate.Label = "Base Plate"
@@ -134,7 +128,7 @@ def createLineOfHoles(ox,oy,angle,distance,total):
 		(x,y) = trig(ox,oy,angle,thisDistance)
 		addHolePart(x,y,thisHoleSize,0.25)
 
-	createBoxViaSketcher(ox,oy,angle,distance,holeSize*0.6+(margin),holeSize+(margin))
+	createBoxViaSketcher(ox,oy,angle,distance,holeSize*0.6,holeSize)
 
 
 def createFan():
@@ -145,27 +139,29 @@ def createFan():
 	distanceOuter = 150
 
 	createLineOfHoles(cx,cy+60,-12,distanceOuter,12)
-	createLineOfHoles(cx+5,cy+50,-10.3,distanceOuter,8)
+	createLineOfHoles(cx+5,cy+50,-10.3,distanceOuter-5,8)
 	createLineOfHoles(cx,cy+40,-8,distanceMiddle,14)
-	createLineOfHoles(cx+5,cy+30,-6.25,distanceMiddle,10)
+	createLineOfHoles(cx+5,cy+30,-6.25,distanceMiddle-5,10)
 	createLineOfHoles(cx,cy+20,-4,distanceInner,16)
-	createLineOfHoles(cx+7,cy+10,-2.5,distanceInner-2,10)
-	createLineOfHoles(cx,cy,0, distanceInner+2,13)
-	createLineOfHoles(cx+7,cy-10,2.5,distanceInner-2,10)
+	createLineOfHoles(cx+7,cy+10,-2.5,distanceInner-7,10)
+	createLineOfHoles(cx,cy,0, distanceInner,13)
+	createLineOfHoles(cx+7,cy-10,2.5,distanceInner-7,10)
 	createLineOfHoles(cx,cy-20,4,distanceInner,16)
-	createLineOfHoles(cx+5,cy-30,6.25,distanceMiddle,10)
+	createLineOfHoles(cx+5,cy-30,6.25,distanceMiddle-5,10)
 	createLineOfHoles(cx,cy-40,8,distanceMiddle,14)
-	createLineOfHoles(cx+5,cy-50,10.3,distanceOuter,8)
+	createLineOfHoles(cx+5,cy-50,10.3,distanceOuter-5,8)
 	createLineOfHoles(cx,cy-60,12,distanceOuter,12)
 
 
-def createBoxViaSketcher(x,y,angle,distance,nearWidth,farWidth):
+def createBoxViaSketcher(x,y,angle,distance,nearRadius,farRadius):
 
-	nearL = trig(x,y,angle-90,nearWidth/2)
-	nearR = trig(x,y,angle+90,nearWidth/2)
+	sketch = App.activeDocument().addObject('Sketcher::SketchObject', 'BaseSketch')
+
+	nearL = trig(x,y,angle-90,nearRadius)
+	nearR = trig(x,y,angle+90,nearRadius)
 	(farX, farY) = trig(x,y,angle,distance)
-	farL = trig(farX,farY,angle-90,farWidth/2)
-	farR = trig(farX,farY,angle+90,farWidth/2)
+	farL = trig(farX,farY,angle-90,farRadius)
+	farR = trig(farX,farY,angle+90,farRadius)
 
 	edges = [nearL, farL, farR, nearR]
 	countPoints = len(edges)
@@ -184,13 +180,16 @@ def createBoxViaSketcher(x,y,angle,distance,nearWidth,farWidth):
 		geoList.append(line)
 
 	sketch.addGeometry(geoList,False)
-	# extrude = App.activeDocument().addObject('Part::Extrusion','ExtrudedBaseSketch')
-	# extrude.Base = sketch
-	# extrude.Solid = True
+	extrude = App.activeDocument().addObject('Part::Extrusion','ExtrudedBaseSketch')
+	extrude.Base = sketch
+	extrude.Solid = True
+	extrude.LengthFwd = baseHeight
 
-	# sketch.Visibility = False
+	# stop rendering the sketch as it doesn't hide properly
+	sketch.Visibility = False
 
-	# bases.append(extrude)
+	bases.append(extrude)
+	
 	# >>> extrude.DirMode = "Normal"
 	# >>> extrude.DirLink = None
 	# >>> extrude.LengthFwd = 10.000000000000000
