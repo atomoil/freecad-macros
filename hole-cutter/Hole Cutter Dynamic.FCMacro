@@ -107,7 +107,43 @@ def createBoxViaSketcher(x,y,angle,distance,nearRadius,farRadius):
 	# >>> extrude.Symmetric = False
 	# >>> extrude.TaperAngle = 0.000000000000000
 	# >>> extrude.TaperAngleRev = 0.000000000000000
-	
+
+
+def createPerpendicularBase(x,y,w,h):
+	sketch = App.activeDocument().addObject('Sketcher::SketchObject', 'BaseSketch')
+
+	nearL = (x,y)
+	nearR = (x+w,y) 
+	farL = (x,y+h)
+	farR = (x+w,y+h)
+
+	edges = [nearL, farL, farR, nearR]
+	countPoints = len(edges)
+
+	geoList = []
+	for i in range(countPoints):
+		j = i+1
+		if j >= countPoints:
+			j = 0
+
+		(x1, y1) = edges[i]
+		(x2, y2) = edges[j]
+		pt1 = App.Vector(x1,y1)
+		pt2 = App.Vector(x2,y2)
+		line = Part.LineSegment(pt1,pt2)
+		geoList.append(line)
+
+	sketch.addGeometry(geoList,False)
+	extrude = App.activeDocument().addObject('Part::Extrusion','PerpBase')
+	extrude.Base = sketch
+	extrude.Solid = True
+	extrude.LengthFwd = baseHeight
+
+	# stop rendering the sketch as it doesn't hide properly
+	sketch.Visibility = False
+
+	bases.append(extrude)
+
 
 def groupHolesIntoStencil():
 
@@ -199,6 +235,13 @@ def createFan():
 	createLineOfHoles(cx,cy-40,8,distanceMiddle,14)
 	createLineOfHoles(cx+5,cy-50,10.3,distanceOuter-5,8)
 	createLineOfHoles(cx,cy-60,12,distanceOuter,12)
+
+	createPerpendicularBase(cx,cy-60,8,120)
+	createPerpendicularBase(cx+(distanceOuter/2)-8,cy-80,8,160)
+
+	createPerpendicularBase(cx+distanceOuter-8,cy-90,8,180) # TODO: calculate the position of far end
+	createPerpendicularBase(cx+distanceMiddle-8,cy-65,8,130)
+	createPerpendicularBase(cx+distanceInner-8,cy-35,8,70)
 
 
 
