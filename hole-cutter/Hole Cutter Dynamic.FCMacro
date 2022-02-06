@@ -5,48 +5,47 @@ import Part
 import math
 
 
-baseHeight = 1.25
+baseHeight = 1.75
 
 
-bases = []
-inners = []
-outers = []
+cutterLayers = { 'bases': [], 'inners': [], 'outers': [] }
+holderLayers = { 'bases': [], 'inners': [], 'outers': [] }
 
 
-# basePlate = App.ActiveDocument.addObject("Part::Box","Box")
-# basePlate.Label = "Base Plate"
-# basePlate.Height = str(baseHeight) + ' mm'
-# basePlate.Length = '100 mm'
-# basePlate.Width = '100 mm'
+basePlate = App.ActiveDocument.addObject("Part::Box","HolderBase")
+basePlate.Label = "Base Plate"
+basePlate.Height = str(baseHeight) + ' mm'
+basePlate.Length = '100 mm'
+basePlate.Width = '100 mm'
+holderLayers['bases'].append(basePlate)
 
-# bases.append(basePlate)
-
-def addHolePart (x, y, size, lineWidth):
+def addCutterPart (x, y, size, lineWidth, addTo):
 
 	# lineWidth = 0.1
 	# size = 5
+
+	cutterHeight = baseHeight + 12
 
 	outerSize = size
 	outerSupportSize = size + 0.5
 	outerSupportSize2 = size + 0.25
 	innerSize = size-(lineWidth*2)
-	bladeSize = innerSize + 0.2
 
 	outer = App.ActiveDocument.addObject("Part::Cylinder","Outer")
 	outer.Radius = str(outerSize) + ' mm'
-	outer.Height = '10 mm'
+	outer.Height = str(cutterHeight) + ' mm'
 
 	outerSupport1 = App.ActiveDocument.addObject("Part::Cylinder","OuterSupportLow")
 	outerSupport1.Radius = str(outerSupportSize) + ' mm'
-	outerSupport1.Height = str(baseHeight+0.25) + ' mm'
+	outerSupport1.Height = str(baseHeight+1.0) + ' mm'
 
 	outerSupport2 = App.ActiveDocument.addObject("Part::Cylinder","OuterSupportHigh")
 	outerSupport2.Radius = str(outerSupportSize2) + ' mm'
-	outerSupport2.Height = str(baseHeight+0.5) + ' mm'
+	outerSupport2.Height = str(baseHeight+2.0) + ' mm'
 
 	inner = App.ActiveDocument.addObject("Part::Cylinder","Inner")
 	inner.Radius = str(innerSize) + ' mm'
-	inner.Height = '12 mm'
+	inner.Height = '20 mm'
 
 	placement = App.Placement(App.Vector(x,y,0),App.Rotation(App.Vector(0,0,1),1))
 
@@ -55,13 +54,26 @@ def addHolePart (x, y, size, lineWidth):
 	outerSupport1.Placement = placement
 	outerSupport2.Placement = placement
 
-	inners.append(inner)
-	outers.append(outer)
-	outers.append(outerSupport1)
-	outers.append(outerSupport2)
+	addTo['inners'].append(inner)
+	addTo['outers'].append(outer)
+	addTo['outers'].append(outerSupport1)
+	addTo['outers'].append(outerSupport2)
 
 
-def createBoxViaSketcher(x,y,angle,distance,nearRadius,farRadius):
+def addBaseHolePart (x, y, size, lineWidth, addTo):
+
+	innerSize = size + 0.5
+
+	inner = App.ActiveDocument.addObject("Part::Cylinder","InnerBaseHole")
+	inner.Radius = str(innerSize) + ' mm'
+	inner.Height = '5 mm'
+
+	inner.Placement = App.Placement(App.Vector(x,y,0),App.Rotation(App.Vector(0,0,1),1))
+
+	addTo['inners'].append(inner)
+
+
+def createBoxViaSketcher(x,y,angle,distance,nearRadius,farRadius,addTo):
 
 	sketch = App.activeDocument().addObject('Sketcher::SketchObject', 'BaseSketch')
 
@@ -96,20 +108,20 @@ def createBoxViaSketcher(x,y,angle,distance,nearRadius,farRadius):
 	# stop rendering the sketch as it doesn't hide properly
 	sketch.Visibility = False
 
-	bases.append(extrude)
+	addTo['bases'].append(extrude)
 	
-	# >>> extrude.DirMode = "Normal"
-	# >>> extrude.DirLink = None
-	# >>> extrude.LengthFwd = 10.000000000000000
-	# >>> extrude.LengthRev = 0.000000000000000
-	# >>> 
-	# >>> extrude.Reversed = False
-	# >>> extrude.Symmetric = False
-	# >>> extrude.TaperAngle = 0.000000000000000
-	# >>> extrude.TaperAngleRev = 0.000000000000000
+	# extrude.DirMode = "Normal"
+	# extrude.DirLink = None
+	# extrude.LengthFwd = 10.000000000000000
+	# extrude.LengthRev = 0.000000000000000
+	# 
+	# extrude.Reversed = False
+	# extrude.Symmetric = False
+	# extrude.TaperAngle = 0.000000000000000
+	# extrude.TaperAngleRev = 0.000000000000000
 
 
-def createPerpendicularBase(x,y,w,h):
+def createPerpendicularBase(x,y,w,h,addTo):
 	sketch = App.activeDocument().addObject('Sketcher::SketchObject', 'BaseSketch')
 
 	nearL = (x,y)
@@ -142,26 +154,30 @@ def createPerpendicularBase(x,y,w,h):
 	# stop rendering the sketch as it doesn't hide properly
 	sketch.Visibility = False
 
-	bases.append(extrude)
+	addTo['bases'].append(extrude)
 
 
-def groupHolesIntoStencil():
+def groupHolesIntoStencil(addTo, name):
 
 	# group the shapes
-	if len(bases) > 1:
+	if len(addTo['bases']) > 1:
 		baseGroup = App.ActiveDocument.addObject("Part::MultiFuse", "BaseFuse")
-		baseGroup.Shapes = bases
-		outers.append( baseGroup )
-	elif len(bases) == 1:
-		outers.append( bases[0] )
+		baseGroup.Shapes = addTo['bases']
+		addTo['outers'].append( baseGroup )
+	elif len(addTo['bases']) == 1:
+		addTo['outers'].append( addTo['bases'][0] )
 
 	innerGroup = App.ActiveDocument.addObject("Part::MultiFuse", "InnerFuse")
-	outerGroup = App.ActiveDocument.addObject("Part::MultiFuse", "OuterFuse")
-	innerGroup.Shapes = inners
-	outerGroup.Shapes = outers
+	innerGroup.Shapes = addTo['inners']
+
+	if len(addTo['outers']) > 1:
+		outerGroup = App.ActiveDocument.addObject("Part::MultiFuse", "OuterFuse")
+		outerGroup.Shapes = addTo['outers']
+	elif len(addTo['outers']) == 1:
+		outerGroup = addTo['outers'][0]
 
 	# Cut the inner from the outer into the final stencil
-	stencil = App.activeDocument().addObject("Part::Cut","Stencil")
+	stencil = App.activeDocument().addObject("Part::Cut",name)
 	stencil.Base = outerGroup
 	stencil.Tool = innerGroup
 
@@ -175,6 +191,11 @@ def trig(x, y, angle, distance):
 
 def createGridOfHoles(mx, my, holeSize, gridSize):
 
+	basePlate = App.ActiveDocument.addObject("Part::Box","HolderBase")
+	basePlate.Label = "Base Plate"
+	basePlate.Height = str(baseHeight) + ' mm'
+	cutterLayers['bases'].append(basePlate)
+
 	# gridSize = holeSize
 	# holeSize = 4
 	# mx = 10
@@ -184,7 +205,8 @@ def createGridOfHoles(mx, my, holeSize, gridSize):
 			nx = gridSize + (x*gridSize*2)
 			ny = gridSize + (y*gridSize*2)
 			size = (((math.sin(x+(y/2))+1)/2) * (holeSize*0.5)) + (holeSize*0.5)
-			addHolePart(nx, ny, size, 0.25)
+			addCutterPart(nx, ny, size, 0.25, cutterLayers)
+			addBaseHolePart(nx, ny, size, 0.25, holderLayers)
 
 	basePlate.Length = str(mx*gridSize*2)
 	basePlate.Width = str(my*gridSize*2)
@@ -200,7 +222,7 @@ def createCircleOfHoles():
 	for i in range(0,total):
 		distance = 10 + (i * 1.1)
 		(x, y) = trig(ox,oy,angle*i,distance)
-		addHolePart(x, y, 3+(0.2*i), 0.25)
+		addCutterPart(x, y, 3+(0.2*i), 0.25, cutterLayers)
 
 
 def createLineOfHoles(ox,oy,angle,distance,total):
@@ -210,9 +232,10 @@ def createLineOfHoles(ox,oy,angle,distance,total):
 		thisDistance = i * (distance/(total-1))
 		thisHoleSize = (holeSize*0.6) + ((holeSize*0.4)*(i/total))
 		(x,y) = trig(ox,oy,angle,thisDistance)
-		addHolePart(x,y,thisHoleSize,0.25)
+		addCutterPart(x,y,thisHoleSize,0.25,cutterLayers)
+		addBaseHolePart(x,y,thisHoleSize, 0.25, holderLayers)
 
-	createBoxViaSketcher(ox,oy,angle,distance,holeSize*0.6,holeSize)
+	createBoxViaSketcher(ox,oy,angle,distance,holeSize*0.6,holeSize, cutterLayers)
 
 
 def createFan():
@@ -236,19 +259,21 @@ def createFan():
 	createLineOfHoles(cx+5,cy-50,10.3,distanceOuter-5,8)
 	createLineOfHoles(cx,cy-60,12,distanceOuter,12)
 
-	createPerpendicularBase(cx,cy-60,8,120)
-	createPerpendicularBase(cx+(distanceOuter/2)-8,cy-80,8,160)
+	createPerpendicularBase(cx,cy-60,8,120,cutterLayers)
+	createPerpendicularBase(cx+(distanceOuter/2)-8,cy-80,8,160,cutterLayers)
 
-	createPerpendicularBase(cx+distanceOuter-8,cy-90,8,180) # TODO: calculate the position of far end
-	createPerpendicularBase(cx+distanceMiddle-8,cy-65,8,130)
-	createPerpendicularBase(cx+distanceInner-8,cy-35,8,70)
+	createPerpendicularBase(cx+distanceOuter-8,cy-90,8,180,cutterLayers) # TODO: calculate the position of far end
+	createPerpendicularBase(cx+distanceMiddle-8,cy-65,8,130,cutterLayers)
+	createPerpendicularBase(cx+distanceInner-8,cy-35,8,70,cutterLayers)
 
 
 
 # createGridOfHoles(5,5,4,5)
+# createGridOfHoles(6,5,4,5)
 # createCircleOfHoles()
 # createBoxViaSketcher()
 # createLineOfHoles(0,0,0,100,5)
 # createLineOfHoles(0,40,5,120,8)
 createFan()
-groupHolesIntoStencil()
+groupHolesIntoStencil(cutterLayers, "Stencil")
+groupHolesIntoStencil(holderLayers, "Holder")
