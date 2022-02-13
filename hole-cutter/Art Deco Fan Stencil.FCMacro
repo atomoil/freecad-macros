@@ -1,0 +1,81 @@
+# -*- coding: utf-8 -*-
+
+import FreeCAD
+import Part
+
+from lib import trig, addCutterPart, addBaseHolePart, appendPointsToSketch, groupHolesIntoStencil, createPerpendicularBase
+
+
+baseHeight = 1.25
+
+holderLayers = { 'bases': [], 'inners': [], 'outers': [] }
+
+
+def createLineOfHoles(ox,oy,angle,distance,total):
+	margin = 2
+	holeSize = (distance/total)/2 - margin
+	for i in range(0,total):
+		thisDistance = i * (distance/(total-1))
+		thisHoleSize = (holeSize*0.6) + ((holeSize*0.4)*(i/total))
+		(x,y) = trig(ox,oy,angle,thisDistance)
+		addBaseHolePart(App.activeDocument(), x,y,thisHoleSize, 0.25, holderLayers)
+
+
+def createFan():
+	cx = 10
+	cy = 95
+	distanceInner = 200
+	distanceMiddle = 175
+	distanceOuter = 150
+
+	createLineOfHoles(cx,cy+60,-12,distanceOuter,12)
+	createLineOfHoles(cx+5,cy+50,-10.3,distanceOuter-5,8)
+	createLineOfHoles(cx,cy+40,-8,distanceMiddle,14)
+	createLineOfHoles(cx+5,cy+30,-6.25,distanceMiddle-5,10)
+	createLineOfHoles(cx,cy+20,-4,distanceInner,16)
+	createLineOfHoles(cx+7,cy+10,-2.5,distanceInner-7,10)
+	createLineOfHoles(cx,cy,0, distanceInner,13)
+	createLineOfHoles(cx+7,cy-10,2.5,distanceInner-7,10)
+	createLineOfHoles(cx,cy-20,4,distanceInner,16)
+	createLineOfHoles(cx+5,cy-30,6.25,distanceMiddle-5,10)
+	createLineOfHoles(cx,cy-40,8,distanceMiddle,14)
+	createLineOfHoles(cx+5,cy-50,10.3,distanceOuter-5,8)
+	createLineOfHoles(cx,cy-60,12,distanceOuter,12)
+
+	createFanBase(cx,cy,12+1,60+8,distanceOuter+12, holderLayers)
+	createFanBase(cx,cy,8+1,40+8,distanceMiddle+12, holderLayers)
+	createFanBase(cx,cy,4+1,20+8,distanceInner+12, holderLayers)
+
+	createPerpendicularBase(cx-30,cy-(60+8),30,(60+8)*2, baseHeight, holderLayers)
+
+
+def createFanBase(x,y,angle,width,length,addTo):
+
+	sketch = App.activeDocument().addObject('Sketcher::SketchObject', 'BaseSketch')
+
+	nearL = (x,y-width)
+	nearR = (x,y+width)
+
+	(nx,ny) = nearL
+	farL = trig(nx,ny,angle,length)
+
+	(nx,ny) = nearR
+	farR = trig(nx,ny,-angle,length)
+
+	points = [nearL, farL, farR, nearR]
+	appendPointsToSketch(sketch, points)
+
+	extrude = App.activeDocument().addObject('Part::Extrusion','PerpBase')
+	extrude.Base = sketch
+	extrude.Solid = True
+	extrude.LengthFwd = baseHeight
+
+	# stop rendering the sketch as it doesn't hide properly
+	sketch.Visibility = False
+
+	addTo['bases'].append(extrude)
+
+
+
+createFan()
+groupHolesIntoStencil(holderLayers, "Stencil")
