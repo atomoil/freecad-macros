@@ -6,7 +6,7 @@ import Part
 from lib import trig, addCutterPart, addBaseHolePart, appendPointsToSketch, groupHolesIntoStencil, createPerpendicularBase
 
 
-baseHeight = 1.25
+baseHeight = 0.75 # 1.25
 
 holderLayers = { 'bases': [], 'inners': [], 'outers': [] }
 
@@ -46,7 +46,11 @@ def createFan():
 	createFanBase(cx,cy,8+1,40+8,distanceMiddle+12, holderLayers)
 	createFanBase(cx,cy,4+1,20+8,distanceInner+12, holderLayers)
 
+	# base for fixings
 	createPerpendicularBase(cx-30,cy-(60+8),30,(60+8)*2, baseHeight, holderLayers)
+	# screw holes
+	addBaseHolePart(App.activeDocument(), cx-15,cy-40,1.5, 0, holderLayers)
+	addBaseHolePart(App.activeDocument(), cx-15,cy+40,1.5, 0, holderLayers)
 
 
 def createFanBase(x,y,angle,width,length,addTo):
