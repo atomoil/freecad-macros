@@ -1,0 +1,109 @@
+# -*- coding: utf-8 -*-
+
+import FreeCAD
+import FreeCADGui
+import Part
+import Draft
+
+from FreeCAD import Units
+
+def main():
+	print( "oh hai" )
+	selection = FreeCADGui.Selection.getSelection()
+	if len(selection) == 0:
+		print( "nothing selected" )
+		return
+
+	model = selection[0]
+	print( "selection is " + model.Label )
+	print( "type is " + model.TypeId)
+	makeMoldBox(model)
+	#FreeCADGui.Selection.getSelection()[0].Label
+
+
+def makeMoldBox(model):
+# 	
+# 	* Generate shape + gutter width + wall width  - shape 1
+# * Extrude 
+# * Generate shape + gutter width / increase Z by wall width - shape 2
+# * Extrude
+# * Cut shape 2 from shape 1
+# * Generate shape + wall width / shorter than shape 1 - shape 3
+# * Generate shape / same height as shape 3 / reduce Z by wall width - shape 4
+# * Join shape1&2 and shape 3
+# * Cut shape 4 from shape 1&2&3
+	shape = Part.getShape(model,'',needSubElement=False,refine=False)
+	doc = App.activeDocument()
+
+	print(model.Shape)
+	print(model.Shape.BoundBox)
+
+	gutter = 0.4
+	wall = 0.1
+
+	oX = model.Shape.BoundBox.XLength
+	oY = model.Shape.BoundBox.YLength
+
+	# TODO - calculate scale based on bounding box and mm measurements (will that work?)
+
+	size1 = App.Vector(1.0+gutter+wall,1.0+gutter+wall,1.0) # Units.Quantity(str(gutter+wall) + " mm")
+	diffX1 = ((oX*(1.0+gutter+wall))-oX) / 2	
+	diffY1 = ((oY*(1.0+gutter+wall))-oY) / 2
+	offset1 = App.Vector(-diffX1,-diffY1,0)
+
+	size2 = App.Vector(1.0+gutter,1.0+gutter,1.0) # Units.Quantity(str(gutter) + " mm")
+	diffX2 = ((oX*(1.0+gutter))-oX) / 2
+	diffY2 = ((oY*(1.0+gutter))-oY) / 2
+	offset2 = App.Vector(-diffX2,-diffY2,1.0)
+
+	size3 = App.Vector(1.0,1.0,0.8)
+	offset3 = App.Vector(0,0,0)
+
+	size4 = App.Vector(1.0-wall,1.0-wall,0.7)
+	diffX4 = ((oX*(1.0-wall))-oX) / 2	
+	diffY4 = ((oY*(1.0-wall))-oY) / 2
+	offset4 = App.Vector(-diffX4,-diffY4,0)
+
+
+	shape1 = Draft.make_clone(model,offset1)
+	shape1.Label = "shape1"
+	shape1.Scale = size1
+
+	shape2 = Draft.make_clone(model,offset2)
+	shape2.Label = "shape2"
+	shape2.Scale = size2
+
+	shape1and2 = App.activeDocument().addObject("Part::Cut","shape1and2")
+	shape1and2.Base = shape1
+	shape1and2.Tool = shape2
+
+	shape3 = Draft.make_clone(model)
+	shape3.Label = "shape3"
+	shape3.Scale = size3
+
+	shape1and2and3 = App.ActiveDocument.addObject("Part::MultiFuse", "shape1and2and3")
+	shape1and2and3.Shapes = [shape1and2,shape3]
+
+	shape4 = Draft.make_clone(model,offset4)
+	shape4.Label = "shape4"
+	shape4.Scale = size4
+
+	moldBox = App.activeDocument().addObject("Part::Cut","moldBox-" + model.Label)
+	moldBox.Base = shape1and2and3
+	moldBox.Tool = shape4
+
+	# shape1.Length = model.Length + size1
+
+	# shape2 = doc.addObject("Part::Feature","shape2")
+	# shape2.Shape = shape
+	# shape2.Length = model.Length + size2
+
+	# shape3 = doc.addObject("Part::Feature","shape3")
+	# shape3.Shape = shape
+	# shape3.Length = model.Length
+
+	doc.recompute()
+	# shape1 = 
+
+
+main()
