@@ -28,22 +28,6 @@ def main():
 	App.activeDocument().recompute()
 
 
-def debugBBound(model):
-
-
-	bbox = model.Shape.BoundBox
-	pos = model.Placement.Base
-	xlength = str(bbox.XLength)
-	ylength = str(bbox.YLength)
-
-	xp = str(pos.x)
-	yp = str(pos.y)
-
-
-	print("BBox:" + model.Label + " > " + str(model.Shape.BoundBox) + " xlen:" + xlength + " ylen:" + ylength + " x:" + xp + " y:" + yp)
-
-
-
 def makeMoldBox(model):
 
 	gutter = 4
@@ -81,6 +65,7 @@ def makeMoldBox(model):
 	moldBox = App.activeDocument().addObject("Part::Cut","moldBox-" + model.Label)
 	moldBox.Base = outerandinner
 	moldBox.Tool = shape4
+	# place this one where the original was
 
 
 def calculateSizeAndPosition(model,increase,zoff=0.0):
@@ -98,10 +83,25 @@ def calculateSizeAndPosition(model,increase,zoff=0.0):
 
 	scale = App.Vector(xperc, yperc, 1.0)
 
+
+	bbox = model.Shape.BoundBox
+	pos = model.Placement.Base
+	halfinc = increase / 2
+
+	cxp = bbox.XMin + (bbox.XLength/2)
+	cyp = bbox.YMin + (bbox.YLength/2)
+
+	dx = pos.x - cxp
+	dy = pos.y - cyp
+
+	# TODO work out how to scale
+
 	# offset = App.Vector() # how do we calculate this?
 	# placement of object vs something on BoundBox ?
 	base = model.Placement.Base
-	position = App.Vector(base.x + (increase/2), base.y + (increase/2), base.z+zoff)
+	position = App.Vector(base.x + (dx*xperc), base.y + (dy*yperc), base.z+zoff)
+
+	print( model.Label, "calc:", base.x,">",dx,"/",base.y,">",dy )
 
 	return (scale, position)
 
