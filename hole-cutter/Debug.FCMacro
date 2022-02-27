@@ -1,0 +1,16 @@
+
+
+import FreeCAD
+import FreeCADGui
+
+def main():
+	selection = FreeCADGui.Selection.getSelection()
+	if len(selection) == 0:
+		FreeCAD.Console.PrintWarning("Please select an object and then re-run this macro.")
+		return
+
+	for obj in selection:
+		print(obj.Label + " " + str(obj.Placement.Base))
+
+
+main()

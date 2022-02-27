@@ -8,102 +8,102 @@ import Draft
 from FreeCAD import Units
 
 def main():
-	print( "oh hai" )
 	selection = FreeCADGui.Selection.getSelection()
 	if len(selection) == 0:
-		print( "nothing selected" )
+		FreeCAD.Console.PrintWarning("Please select an object and then re-run this macro.")
 		return
 
-	model = selection[0]
-	print( "selection is " + model.Label )
-	print( "type is " + model.TypeId)
-	makeMoldBox(model)
-	#FreeCADGui.Selection.getSelection()[0].Label
+	#model = selection[0]
+	#print( "selection is " + model.Label )
+	#print( "type is " + model.TypeId)
+	#makeMoldBox(model)
+	
+	for i in range(len(selection)):
+		model = selection[i]
+		# debugBBound(model)
+		makeMoldBox(model)
+		model.Visibility = False
+
+
+	App.activeDocument().recompute()
+
+
+def debugBBound(model):
+
+
+	bbox = model.Shape.BoundBox
+	pos = model.Placement.Base
+	xlength = str(bbox.XLength)
+	ylength = str(bbox.YLength)
+
+	xp = str(pos.x)
+	yp = str(pos.y)
+
+
+	print("BBox:" + model.Label + " > " + str(model.Shape.BoundBox) + " xlen:" + xlength + " ylen:" + ylength + " x:" + xp + " y:" + yp)
+
 
 
 def makeMoldBox(model):
-# 	
-# 	* Generate shape + gutter width + wall width  - shape 1
-# * Extrude 
-# * Generate shape + gutter width / increase Z by wall width - shape 2
-# * Extrude
-# * Cut shape 2 from shape 1
-# * Generate shape + wall width / shorter than shape 1 - shape 3
-# * Generate shape / same height as shape 3 / reduce Z by wall width - shape 4
-# * Join shape1&2 and shape 3
-# * Cut shape 4 from shape 1&2&3
-	shape = Part.getShape(model,'',needSubElement=False,refine=False)
-	doc = App.activeDocument()
 
-	print(model.Shape)
-	print(model.Shape.BoundBox)
+	gutter = 4
+	wall = 1
 
-	gutter = 0.4
-	wall = 0.1
-
-	oX = model.Shape.BoundBox.XLength
-	oY = model.Shape.BoundBox.YLength
-
-	# TODO - calculate scale based on bounding box and mm measurements (will that work?)
-
-	size1 = App.Vector(1.0+gutter+wall,1.0+gutter+wall,1.0) # Units.Quantity(str(gutter+wall) + " mm")
-	diffX1 = ((oX*(1.0+gutter+wall))-oX) / 2	
-	diffY1 = ((oY*(1.0+gutter+wall))-oY) / 2
-	offset1 = App.Vector(-diffX1,-diffY1,0)
-
-	size2 = App.Vector(1.0+gutter,1.0+gutter,1.0) # Units.Quantity(str(gutter) + " mm")
-	diffX2 = ((oX*(1.0+gutter))-oX) / 2
-	diffY2 = ((oY*(1.0+gutter))-oY) / 2
-	offset2 = App.Vector(-diffX2,-diffY2,1.0)
-
-	size3 = App.Vector(1.0,1.0,0.8)
-	offset3 = App.Vector(0,0,0)
-
-	size4 = App.Vector(1.0-wall,1.0-wall,0.7)
-	diffX4 = ((oX*(1.0-wall))-oX) / 2	
-	diffY4 = ((oY*(1.0-wall))-oY) / 2
-	offset4 = App.Vector(-diffX4,-diffY4,0)
+	(scale1, position1) = calculateSizeAndPosition(model, gutter+wall)
+	shape1 = Draft.make_clone(model,position1)
+	shape1.Label = "outer_shape-" + model.Label
+	shape1.Scale = scale1
 
 
-	shape1 = Draft.make_clone(model,offset1)
-	shape1.Label = "shape1"
-	shape1.Scale = size1
+	(scale2, position2) = calculateSizeAndPosition(model, gutter, wall)
+	shape2 = Draft.make_clone(model,position2)
+	shape2.Label = "outer_cut-" + model.Label
+	shape2.Scale = scale2
 
-	shape2 = Draft.make_clone(model,offset2)
-	shape2.Label = "shape2"
-	shape2.Scale = size2
+	outer = App.activeDocument().addObject("Part::Cut","outer-" + model.Label)
+	outer.Base = shape1
+	outer.Tool = shape2
 
-	shape1and2 = App.activeDocument().addObject("Part::Cut","shape1and2")
-	shape1and2.Base = shape1
-	shape1and2.Tool = shape2
+	(scale3, position3) = calculateSizeAndPosition(model, 0.0)
+	shape3 = Draft.make_clone(model,position3)
+	shape3.Label = "inner_shape-" + model.Label
+	shape3.Scale = scale3
 
-	shape3 = Draft.make_clone(model)
-	shape3.Label = "shape3"
-	shape3.Scale = size3
+	outerandinner = App.ActiveDocument.addObject("Part::MultiFuse", "outerandinner-" + model.Label)
+	outerandinner.Shapes = [outer,shape3]
 
-	shape1and2and3 = App.ActiveDocument.addObject("Part::MultiFuse", "shape1and2and3")
-	shape1and2and3.Shapes = [shape1and2,shape3]
 
-	shape4 = Draft.make_clone(model,offset4)
-	shape4.Label = "shape4"
-	shape4.Scale = size4
+	(scale4, position4) = calculateSizeAndPosition(model, -wall, -wall)
+	shape4 = Draft.make_clone(model,position4)
+	shape4.Label = "inner_cut-" + model.Label
+	shape4.Scale = scale4
 
 	moldBox = App.activeDocument().addObject("Part::Cut","moldBox-" + model.Label)
-	moldBox.Base = shape1and2and3
+	moldBox.Base = outerandinner
 	moldBox.Tool = shape4
 
-	# shape1.Length = model.Length + size1
 
-	# shape2 = doc.addObject("Part::Feature","shape2")
-	# shape2.Shape = shape
-	# shape2.Length = model.Length + size2
+def calculateSizeAndPosition(model,increase,zoff=0.0):
 
-	# shape3 = doc.addObject("Part::Feature","shape3")
-	# shape3.Shape = shape
-	# shape3.Length = model.Length
+	bbox = model.Shape.BoundBox
 
-	doc.recompute()
-	# shape1 = 
+	oXL = bbox.XLength # - bbox.XMin
+	oYL = bbox.YLength # - bbox.YMin
+
+	nXL = oXL + increase
+	nYL = oYL + increase
+
+	xperc = nXL / oXL
+	yperc = nYL / oYL
+
+	scale = App.Vector(xperc, yperc, 1.0)
+
+	# offset = App.Vector() # how do we calculate this?
+	# placement of object vs something on BoundBox ?
+	base = model.Placement.Base
+	position = App.Vector(base.x + (increase/2), base.y + (increase/2), base.z+zoff)
+
+	return (scale, position)
 
 
 main()
