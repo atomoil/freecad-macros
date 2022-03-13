@@ -11,9 +11,9 @@ baseHeight = 0.75 # 1.25
 holderLayers = { 'bases': [], 'inners': [], 'outers': [] }
 
 
-def createLineOfHoles(ox,oy,angle,distance,total):
+def createLineOfHoles(ox,oy,angle,distance,total,offset=1):
 	margin = 2
-	holeSize = (distance/total)/2 - margin
+	holeSize = ((distance/total)/2 - margin) * offset
 	for i in range(0,total):
 		thisDistance = i * (distance/(total-1))
 		thisHoleSize = (holeSize*0.6) + ((holeSize*0.4)*(i/total))
@@ -21,7 +21,7 @@ def createLineOfHoles(ox,oy,angle,distance,total):
 		addBaseHolePart(App.activeDocument(), x,y,thisHoleSize, 0.25, holderLayers)
 
 
-def createFan():
+def createFan1():
 	cx = 10
 	cy = 95
 	distanceInner = 200
@@ -42,18 +42,62 @@ def createFan():
 	createLineOfHoles(cx+5,cy-50,10.3,distanceOuter-5,8)
 	createLineOfHoles(cx,cy-60,12,distanceOuter,12)
 
-	createFanBase(cx,cy,12+1,60+8,distanceOuter+12, holderLayers)
-	createFanBase(cx,cy,8+1,40+8,distanceMiddle+12, holderLayers)
-	createFanBase(cx,cy,4+1,20+8,distanceInner+12, holderLayers)
+	createFanBase(cx,cy,distanceInner+12,distanceMiddle+12,distanceOuter+12, baseHeight)
+
+
+def createFan2():
+	cx = 10
+	cy = 95
+	distanceInner = 195
+	distanceMiddle = 165
+	distanceOuter = 150
+
+	createLineOfHoles(cx,cy+60,-12,distanceOuter,12)
+	createLineOfHoles(cx+7,cy+55.5,-10.75,distanceOuter-12.5,11,0.8)
+	createLineOfHoles(cx,cy+50,-9.5,distanceOuter+2,12,0.65)
+
+	createLineOfHoles(cx+7,cy+41.5,-8,distanceMiddle,13)
+	createLineOfHoles(cx,cy+35,-6.5,distanceMiddle,13,0.8)
+	createLineOfHoles(cx+7,cy+31,-5,distanceMiddle,13,0.65)
+
+	createLineOfHoles(cx,cy+20,-4,distanceInner,15)
+	createLineOfHoles(cx+7,cy+14,-3,distanceInner-14,14,0.8)
+	createLineOfHoles(cx,cy+9,-2,distanceInner,15,0.65)
+	createLineOfHoles(cx+7,cy+5,-1,distanceInner-14,14,0.45)
+
+	# createLineOfHoles(cx+7,cy,0,distanceInner-14,14,1.4) # middle
+	createLineOfHoles(cx,cy,0, distanceInner,15) # middle
+
+	createLineOfHoles(cx+7,cy-5,1,distanceInner-14,14,0.45)
+	createLineOfHoles(cx,cy-9,2,distanceInner,15,0.65)
+	createLineOfHoles(cx+7,cy-14,3,distanceInner-14,14,0.8)
+	createLineOfHoles(cx,cy-20,4,distanceInner,15)
+	
+	createLineOfHoles(cx+7,cy-31,5,distanceMiddle,13,0.65)
+	createLineOfHoles(cx,cy-35,6.5,distanceMiddle,13,0.8)
+	createLineOfHoles(cx+7,cy-41.5,8,distanceMiddle,13)
+
+	createLineOfHoles(cx,cy-50,9.5,distanceOuter+2,12,0.65)
+	createLineOfHoles(cx+7,cy-55.5,10.75,distanceOuter-12.5,11,0.8)
+	createLineOfHoles(cx,cy-60,12,distanceOuter,12)
+
+	createFanBase(cx,cy,distanceInner+12,distanceMiddle+18,distanceOuter+12, baseHeight)
+
+
+def createFanBase(cx,cy,distanceInner,distanceMiddle,distanceOuter, height):
+
+	createFanBasePart(cx,cy,12+1,60+8,distanceOuter, height, holderLayers)
+	createFanBasePart(cx,cy,8+1,40+8,distanceMiddle, height, holderLayers)
+	createFanBasePart(cx,cy,4+1,20+8,distanceInner, height, holderLayers)
 
 	# base for fixings
-	createPerpendicularBase(cx-30,cy-(60+8),30,(60+8)*2, baseHeight, holderLayers)
+	createPerpendicularBase(cx-30,cy-(60+8),30,(60+8)*2, height, holderLayers)
 	# screw holes
 	addBaseHolePart(App.activeDocument(), cx-15,cy-40,1.5, 0, holderLayers)
 	addBaseHolePart(App.activeDocument(), cx-15,cy+40,1.5, 0, holderLayers)
 
 
-def createFanBase(x,y,angle,width,length,addTo):
+def createFanBasePart(x,y,angle,width,length,height,addTo):
 
 	sketch = App.activeDocument().addObject('Sketcher::SketchObject', 'BaseSketch')
 
@@ -72,7 +116,7 @@ def createFanBase(x,y,angle,width,length,addTo):
 	extrude = App.activeDocument().addObject('Part::Extrusion','PerpBase')
 	extrude.Base = sketch
 	extrude.Solid = True
-	extrude.LengthFwd = baseHeight
+	extrude.LengthFwd = height
 
 	# stop rendering the sketch as it doesn't hide properly
 	sketch.Visibility = False
@@ -81,5 +125,6 @@ def createFanBase(x,y,angle,width,length,addTo):
 
 
 
-createFan()
+#createFan1()
+createFan2()
 groupHolesIntoStencil(holderLayers, "Stencil")
