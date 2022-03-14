@@ -18,6 +18,7 @@ def createLineOfHoles(ox,oy,angle,distance,total,offset=1):
 		thisDistance = i * (distance/(total-1))
 		thisHoleSize = (holeSize*0.6) + ((holeSize*0.4)*(i/total))
 		(x,y) = trig(ox,oy,angle,thisDistance)
+		# addCutterPart(App.activeDocument(), x,y,thisHoleSize, 0.25, holderLayers)
 		addBaseHolePart(App.activeDocument(), x,y,thisHoleSize, 0.25, holderLayers)
 
 
