@@ -18,19 +18,18 @@ def debugBBound(model):
 
 	bbox = model.Shape.BoundBox
 	pos = model.Placement.Base
-	xlength = str(bbox.XLength)
-	ylength = str(bbox.YLength)
 
+	cxp = bbox.XMin + (bbox.XLength/2)
+	cyp = bbox.YMin + (bbox.YLength/2)
 
-	bb_cxp = bbox.XMin + (bbox.XLength/2)
-	bb_cyp = bbox.YMin + (bbox.YLength/2)
-
-
-	dx = bb_cxp - pos.x
-	dy = bb_cyp - pos.y
+	dx = cxp - pos.x
+	dy = cyp - pos.y
 
 	base_xp = str(pos.x)
 	base_yp = str(pos.y)
+
+
+	
 
 	#print("BBox:" + model.Label + " > " + str(model.Shape.BoundBox) + " xlen:" + xlength + " ylen:" + ylength + " x:" + xp + " y:" + yp)
 	print( model.Label, "bbox:", bbox.XMin, bbox.XMax, bbox.XLength )
