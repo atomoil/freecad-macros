@@ -12,7 +12,7 @@ def trig(x, y, angle, distance):
 	return (x,y)
 
 
-def addCutterPart (x, y, size, lineWidth, addTo):
+def addCutterPart (doc, x, y, size, lineWidth, addTo):
 
 	# lineWidth = 0.1
 	# size = 5
@@ -24,19 +24,19 @@ def addCutterPart (x, y, size, lineWidth, addTo):
 	outerSupportSize2 = size + 0.25
 	innerSize = size-(lineWidth*2)
 
-	outer = App.ActiveDocument.addObject("Part::Cylinder","Outer")
+	outer = doc.addObject("Part::Cylinder","Outer")
 	outer.Radius = str(outerSize) + ' mm'
 	outer.Height = str(cutterHeight) + ' mm'
 
-	outerSupport1 = App.ActiveDocument.addObject("Part::Cylinder","OuterSupportLow")
+	outerSupport1 = doc.addObject("Part::Cylinder","OuterSupportLow")
 	outerSupport1.Radius = str(outerSupportSize) + ' mm'
 	outerSupport1.Height = str(baseHeight+1.0) + ' mm'
 
-	outerSupport2 = App.ActiveDocument.addObject("Part::Cylinder","OuterSupportHigh")
+	outerSupport2 = doc.addObject("Part::Cylinder","OuterSupportHigh")
 	outerSupport2.Radius = str(outerSupportSize2) + ' mm'
 	outerSupport2.Height = str(baseHeight+2.0) + ' mm'
 
-	inner = App.ActiveDocument.addObject("Part::Cylinder","Inner")
+	inner = doc.addObject("Part::Cylinder","Inner")
 	inner.Radius = str(innerSize) + ' mm'
 	inner.Height = '20 mm'
 
