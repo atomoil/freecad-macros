@@ -2,8 +2,13 @@
 
 import FreeCAD
 import FreeCADGui
+import Draft
 
 def main():
+	debugBezier()
+
+
+def mainBBound():
 	selection = FreeCADGui.Selection.getSelection()
 	if len(selection) == 0:
 		FreeCAD.Console.PrintWarning("Please select an object and then re-run this macro.")
@@ -35,4 +40,50 @@ def debugBBound(model):
 	print( model.Label, "bbox:", bbox.XMin, bbox.XMax, bbox.XLength )
 	print( model.Label, "calc:", base_xp,">",dx,"/",base_yp,">",dy )
 
+
+def debugBezier():
+
+	doc = App.activeDocument()
+
+	p1 = App.Vector(0, 0, 0)
+	p2 = App.Vector(5, 5, 0)
+	p3 = App.Vector(10, 6, 0)
+	p4 = App.Vector(15, 3, 0)
+	p5 = App.Vector(19, 1, 0)
+	p6 = App.Vector(20, 0, 0)
+
+	spline1 = Draft.make_bspline([p1, p2, p3, p4, p5, p6], face=False, closed=True, support=None)
+	doc.recompute()
+
+	print(spline1) # <Part::Part2DObject>
+	# print(spline1.supportedProperties()) # ['App::PropertyBool', 'App::PropertyBoolList', 'App::PropertyFloat', 'App::PropertyFloatList', 'App::PropertyFloatConstraint', 'App::PropertyPrecision', 'App::PropertyQuantity', 'App::PropertyQuantityConstraint', 'App::PropertyAngle', 'App::PropertyDistance', 'App::PropertyLength', 'App::PropertyArea', 'App::PropertyVolume', 'App::PropertyFrequency', 'App::PropertySpeed', 'App::PropertyAcceleration', 'App::PropertyForce', 'App::PropertyPressure', 'App::PropertyVacuumPermittivity', 'App::PropertyInteger', 'App::PropertyIntegerConstraint', 'App::PropertyPercent', 'App::PropertyEnumeration', 'App::PropertyIntegerList', 'App::PropertyIntegerSet', 'App::PropertyMap', 'App::PropertyString', 'App::PropertyPersistentObject', 'App::PropertyUUID', 'App::PropertyFont', 'App::PropertyStringList', 'App::PropertyLink', 'App::PropertyLinkChild', 'App::PropertyLinkGlobal', 'App::PropertyLinkHidden', 'App::PropertyLinkSub', 'App::PropertyLinkSubChild', 'App::PropertyLinkSubGlobal', 'App::PropertyLinkSubHidden', 'App::PropertyLinkList', 'App::PropertyLinkListChild', 'App::PropertyLinkListGlobal', 'App::PropertyLinkListHidden', 'App::PropertyLinkSubList', 'App::PropertyLinkSubListChild', 'App::PropertyLinkSubListGlobal', 'App::PropertyLinkSubListHidden', 'App::PropertyXLink', 'App::PropertyXLinkSub', 'App::PropertyXLinkSubList', 'App::PropertyXLinkList', 'App::PropertyMatrix', 'App::PropertyVector', 'App::PropertyVectorDistance', 'App::PropertyPosition', 'App::PropertyDirection', 'App::PropertyVectorList', 'App::PropertyPlacement', 'App::PropertyPlacementList', 'App::PropertyPlacementLink', 'App::PropertyColor', 'App::PropertyColorList', 'App::PropertyMaterial', 'App::PropertyMaterialList', 'App::PropertyPath', 'App::PropertyFile', 'App::PropertyFileIncluded', 'App::PropertyPythonObject', 'App::PropertyExpressionEngine', 'Part::PropertyPartShape', 'Part::PropertyGeometryList', 'Part::PropertyShapeHistory', 'Part::PropertyFilletEdges', 'Sketcher::PropertyConstraintList']
+	print(spline1.Shape) # <Edge object at 0x7f9f860830a0> / (before recompute) <Shape object at 0x7f9f87843920>
+	print(spline1.Shape.Edges) # [<Edge object at 0x7f9f860800d0>]
+	print(spline1.Shape.Edges[0].Curve) # <BSplineCurve object>
+	print(spline1.Shape.Curve) # <BSplineCurve object>
+	print(spline1.Shape.Faces) # []
+	# print(spline1.Shape.valueAt(0.5,1)) # 'Part.Shape' object has no attribute 'valueAt'
+	# print(spline1.valueAt(0.5,1)) # 'FeaturePython' object has no attribute 'valueAt' :-/
+	# print(spline1.Curve) # 'FeaturePython' object has no attribute 'Curve'
+
+
+	print(spline1.Shape.valueAt(0.0)) # 'Part.Shape' object has no attribute 'valueAt'
+	print(spline1.Shape.valueAt(0.5)) # 'Part.Shape' object has no attribute 'valueAt'
+	print(spline1.Shape.valueAt(1.0)) # 'Part.Shape' object has no attribute 'valueAt'
+	print(spline1.Shape.valueAt(2.0)) # 'Part.Shape' object has no attribute 'valueAt'
+	print(spline1.Shape.Length) # 'Part.Shape' object has no attribute 'valueAt'
+	print(spline1.Shape.valueAt(0.0*spline1.Shape.Length)) # 'Part.Shape' object has no attribute 'valueAt'
+	print(spline1.Shape.valueAt(0.5*spline1.Shape.Length)) # 'Part.Shape' object has no attribute 'valueAt'
+	print(spline1.Shape.valueAt(1.0*spline1.Shape.Length)) # 'Part.Shape' object has no attribute 'valueAt'
+
+	# print(spline1.value(0.5)) # error :-/
+	# print(spline1.NbPoles) # error :-/
+	# print(spline1.NbKnots) # error :-/
+
+	# print( spline1.getPole(1) )
+	# print( spline1.getPole(2) )
+
+	# doc.recompute()
+
 main()
+
