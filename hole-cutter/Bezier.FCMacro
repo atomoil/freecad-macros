@@ -15,21 +15,56 @@ def drawLeaf():
 
 	outer = [ 
 		App.Vector(0, 0, 0),
-		App.Vector(15, 25, 0),
-		App.Vector(25, 28, 0),
+		App.Vector(5, 20, 0),
+		App.Vector(10, 22, 0),
+		App.Vector(30, 20, 0),
+		App.Vector(47, 2, 0),
+		App.Vector(50, 0, 0),
+	]
+
+	(topline, bottomline) = drawLeafOutline(doc, outer, xo=-5, xs=1.4, ys=1.5)
+	newline = Draft.upgrade([topline, bottomline], delete=True)
+	print(newline)
+	# newline.Label = "background"
+
+	(topline, bottomline) = drawLeafOutline(doc, outer, yo=-12)
+	createHolesOnSpline(doc, topline, 10, 3)
+	createHolesOnSpline(doc, bottomline, 10, 3)
+
+	(topline, bottomline) = drawLeafOutline(doc, outer, yo=-8, xo=6, xs=0.7, ys=0.7)
+	createHolesOnSpline(doc, topline, 8, 2.5, angoff=pi)
+	createHolesOnSpline(doc, bottomline, 8, 2.5, angoff=pi)
+
+	(topline, bottomline) = drawLeafOutline(doc, outer, yo=-6, xo=12, xs=0.4, ys=0.3)
+	createHolesOnSpline(doc, topline, 6, 2, angoff=pi/2)
+	createHolesOnSpline(doc, bottomline, 6, 2, angoff=pi/2)
+
+
+	# (topline, bottomline) = drawLeafOutline(doc, outer, yo=-8, xo=24, xs=0.4, ys=0.1)
+	# createHolesOnSpline(doc, topline, 8, 1.5, angoff=pi)
+	# createHolesOnSpline(doc, bottomline, 8, 1.5, angoff=pi)
+
+
+def drawLeaf2():
+	doc = App.activeDocument()
+
+	outer = [ 
+		App.Vector(0, 0, 0),
+		App.Vector(15, 35, 0),
+		App.Vector(40, 38, 0),
 		App.Vector(90, 5, 0),
 		App.Vector(100, 0, 0),
 	]
-	(topline, bottomline) = drawLeafOutline(doc, outer, yo=0)
+	(topline, bottomline) = drawLeafOutline(doc, outer, yo=-12)
 	createHolesOnSpline(doc, topline, 12, 4)
 	createHolesOnSpline(doc, bottomline, 12, 4)
 
-	(topline, bottomline) = drawLeafOutline(doc, outer, yo=0, xo=8, xs=0.75, ys=0.7)
+	(topline, bottomline) = drawLeafOutline(doc, outer, yo=-12, xo=8, xs=0.75, ys=0.7)
 	createHolesOnSpline(doc, topline, 9, 3.5, angoff=pi)
 	createHolesOnSpline(doc, bottomline, 9, 3.5, angoff=pi)
 
 
-	(topline, bottomline) = drawLeafOutline(doc, outer, yo=0, xo=16, xs=0.475, ys=0.4)
+	(topline, bottomline) = drawLeafOutline(doc, outer, yo=-12, xo=16, xs=0.475, ys=0.4)
 	createHolesOnSpline(doc, topline, 6, 3, angoff=pi/2)
 	createHolesOnSpline(doc, bottomline, 6, 3, angoff=pi/2)
 
@@ -70,12 +105,13 @@ def drawLeaf1():
 
 
 def drawLeafOutline(doc,pointsIn,xo=0,yo=0,xs=1,ys=1):
+	yo = yo / 2
 
 	points = []
 	pointsFlipped = []
 	for pt in pointsIn:
-		npt = App.Vector((pt.x*xs)+xo, pt.y*ys, pt.z)
-		fpt = App.Vector(npt.x, -npt.y+yo, npt.z)
+		npt = App.Vector((pt.x*xs)+xo, (pt.y*ys)-yo, pt.z)
+		fpt = App.Vector(npt.x, (-pt.y*ys)+yo, npt.z)
 		points.append( npt )
 		pointsFlipped.append( fpt )
 
