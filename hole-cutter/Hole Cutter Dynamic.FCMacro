@@ -4,7 +4,7 @@ import FreeCAD
 import Part
 import math
 
-from lib import trig, addCutterPart, addBaseHolePart, createBoxViaSketcher, appendPointsToSketch, groupHolesIntoStencil, createPerpendicularBase
+from lib import trig, addCutterPart, addBaseHolePart, createBoxViaSketcher, appendPointsToSketch, groupHolesIntoStencil, createPerpendicularBase, extrudeBase
 
 
 baseHeight = 1.75
@@ -86,16 +86,8 @@ def createBoxViaSketcher(x,y,angle,distance,nearRadius,farRadius,addTo):
 	
 	appendPointsToSketch(sketch, points)
 
-	extrude = App.activeDocument().addObject('Part::Extrusion','ExtrudedBaseSketch')
-	extrude.Base = sketch
-	extrude.Solid = True
-	extrude.LengthFwd = baseHeight
+	extrudeBase(sketch, baseHeight, addTo)
 
-	# stop rendering the sketch as it doesn't hide properly
-	sketch.Visibility = False
-
-	addTo['bases'].append(extrude)
-	
 	# extrude.DirMode = "Normal"
 	# extrude.DirLink = None
 	# extrude.LengthFwd = 10.000000000000000
@@ -105,8 +97,6 @@ def createBoxViaSketcher(x,y,angle,distance,nearRadius,farRadius,addTo):
 	# extrude.Symmetric = False
 	# extrude.TaperAngle = 0.000000000000000
 	# extrude.TaperAngleRev = 0.000000000000000
-
-
 
 
 def createFan():

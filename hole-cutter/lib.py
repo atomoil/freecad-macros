@@ -12,7 +12,27 @@ def trig(x, y, angle, distance):
 	return (x,y)
 
 
-def addCutterPart (doc, x, y, size, lineWidth, addTo):
+def getEmptyLayers():
+	layers = {}
+	layers['bases'] = []
+	layers['inners'] = []
+	layers['outers'] = []
+	return layers
+
+
+def extrudeBase(shape, height, addTo):
+	extrude = App.activeDocument().addObject('Part::Extrusion','ExtrudedBaseSketch')
+	extrude.Base = shape
+	extrude.Solid = True
+	extrude.LengthFwd = height
+
+	# stop rendering the shape as it doesn't hide properly
+	shape.Visibility = False
+
+	addTo['bases'].append(extrude)
+
+
+def addCutterPart (doc, x, y, size, lineWidth, addTo, baseHeight=2):
 
 	# lineWidth = 0.1
 	# size = 5
@@ -58,7 +78,7 @@ def addBaseHolePart (doc, x, y, size, lineWidth, addTo):
 	innerSize = size + 0.5
 
 	inner = doc.addObject("Part::Cylinder","InnerBaseHole")
-	inner.Radius = str(innerSize) + ' mm'
+	inner.Radius = '{} mm'.format(innerSize)
 	inner.Height = '5 mm'
 
 	inner.Placement = Placement(Vector(x,y,0),Rotation(Vector(0,0,1),1))

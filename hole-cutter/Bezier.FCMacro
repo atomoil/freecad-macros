@@ -8,9 +8,15 @@ import FreeCAD as App
 import Draft
 from FreeCAD import Placement, Vector, Rotation
 from math import cos, sin, pi
+from lib import getEmptyLayers, extrudeBase, groupHolesIntoStencil, addBaseHolePart, addCutterPart
 
+baseHeight = 2
+cutterLayers = getEmptyLayers()
+holderLayers = getEmptyLayers()
 
-def drawLeaf():
+def drawLeaf(addTo):
+	print("drawLeaf...")
+
 	doc = App.activeDocument()
 
 	outer = [ 
@@ -23,8 +29,12 @@ def drawLeaf():
 	]
 
 	(topline, bottomline) = drawLeafOutline(doc, outer, xo=-5, xs=1.4, ys=1.5)
-	newline = Draft.upgrade([topline, bottomline], delete=True)
-	print(newline)
+	(newlines,_) = Draft.upgrade([topline, bottomline], delete=True)
+	extrudeBase(newlines[0], 2, cutterLayers)
+
+	(topline, bottomline) = drawLeafOutline(doc, outer, xo=-5, xs=1.4, ys=1.5)
+	(newlines,_) = Draft.upgrade([topline, bottomline], delete=True)
+	extrudeBase(newlines[0], 2, holderLayers)
 	# newline.Label = "background"
 
 	(topline, bottomline) = drawLeafOutline(doc, outer, yo=-12)
@@ -45,7 +55,7 @@ def drawLeaf():
 	# createHolesOnSpline(doc, bottomline, 8, 1.5, angoff=pi)
 
 
-def drawLeaf2():
+def drawLeaf2(addTo):
 	doc = App.activeDocument()
 
 	outer = [ 
@@ -141,7 +151,7 @@ def createHolesOnSpline(doc, spline, frequency, radius, angoff=0):
 	for i in range(0,frequency+1):
 		val = i * inc
 
-		print(i, val)
+		# print(i, val)
 		# print(spline.Shape.Edges[0])
 		loc = spline.Shape.Edges[0].valueAt(val*spline.Shape.Edges[0].Length)
 		# print(loc)
@@ -149,11 +159,15 @@ def createHolesOnSpline(doc, spline, frequency, radius, angoff=0):
 		ang = (i/frequency)*(pi*2)+angoff
 		radius = halfRadius + ((cos(ang)+1)/2 * halfRadius)
 
-		circle = doc.addObject("Part::Cylinder","circle-{}".format(i))
-		circle.Radius = '{} mm'.format(radius)
-		circle.Height = '3 mm'
-		placement = Placement(loc,Rotation(Vector(0,0,1),1))
-		circle.Placement = placement
+		addBaseHolePart(doc, loc.x, loc.y, size=radius, lineWidth=0.25, addTo=holderLayers)
+		addCutterPart(doc, loc.x, loc.y, size=radius, lineWidth=0.25, addTo=cutterLayers, baseHeight=2)
+		# circle = doc.addObject("Part::Cylinder","circle-{}".format(i))
+		# circle.Radius = '{} mm'.format(radius)
+		# circle.Height = '3 mm'
+		# placement = Placement(loc,Rotation(Vector(0,0,1),1))
+		# circle.Placement = placement
 
 
-drawLeaf()
+drawLeaf(cutterLayers)
+groupHolesIntoStencil(cutterLayers, "leafCutter")
+groupHolesIntoStencil(holderLayers, "leafHolder")
