@@ -20,7 +20,7 @@ def getEmptyLayers():
 	return layers
 
 
-def extrudeBase(shape, height, addTo):
+def extrudeBase (shape, height, addTo):
 	extrude = App.activeDocument().addObject('Part::Extrusion','ExtrudedBaseSketch')
 	extrude.Base = shape
 	extrude.Solid = True
@@ -37,7 +37,7 @@ def addCutterPart (doc, x, y, size, lineWidth, addTo, baseHeight=2):
 	# lineWidth = 0.1
 	# size = 5
 
-	cutterHeight = baseHeight + 12
+	cutterHeight = baseHeight + baseHeight + 6.35 # 1/4" = 6.35mm which is thickest usual clay
 
 	outerSize = size
 	outerSupportSize = size + 0.5
