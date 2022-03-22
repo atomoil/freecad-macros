@@ -8,11 +8,12 @@ import FreeCAD as App
 import Draft
 from FreeCAD import Placement, Vector, Rotation
 from math import cos, sin, pi
-from lib import getEmptyLayers, extrudeBase, groupHolesIntoStencil, addBaseHolePart, addCutterPart
+from lib import getEmptyLayers, extrudeBase, groupHolesIntoStencil, addBaseHolePart, addCutterPart, addPusherPart
 
 baseHeight = 2
 cutterLayers = getEmptyLayers()
 holderLayers = getEmptyLayers()
+pusherLayers = getEmptyLayers()
 
 def drawLeaf(addTo):
 	print("drawLeaf...")
@@ -30,29 +31,25 @@ def drawLeaf(addTo):
 
 	(topline, bottomline) = drawLeafOutline(doc, outer, xo=-5, xs=1.4, ys=1.5)
 	(newlines,_) = Draft.upgrade([topline, bottomline], delete=True)
-	extrudeBase(newlines[0], 2, cutterLayers)
+	extrudeBase(newlines[0], baseHeight, cutterLayers)
+	extrudeBase(newlines[0], baseHeight, pusherLayers)
 
-	(topline, bottomline) = drawLeafOutline(doc, outer, xo=-5, xs=1.4, ys=1.5)
+	(topline, bottomline) = drawLeafOutline(doc, outer, xo=-6.5, xs=1.45, ys=1.55)
 	(newlines,_) = Draft.upgrade([topline, bottomline], delete=True)
-	extrudeBase(newlines[0], 2, holderLayers)
-	# newline.Label = "background"
+	extrudeBase(newlines[0], baseHeight, holderLayers)
 
 	(topline, bottomline) = drawLeafOutline(doc, outer, yo=-12)
-	createHolesOnSpline(doc, topline, 10, 3)
-	createHolesOnSpline(doc, bottomline, 10, 3)
+	createHolesOnSpline(doc, topline, 8, 4, angoff=pi, keepRadius=0.7)
+	createHolesOnSpline(doc, bottomline, 8, 4, angoff=pi, keepRadius=0.7)
 
-	(topline, bottomline) = drawLeafOutline(doc, outer, yo=-8, xo=6, xs=0.7, ys=0.7)
-	createHolesOnSpline(doc, topline, 8, 2.5, angoff=pi)
-	createHolesOnSpline(doc, bottomline, 8, 2.5, angoff=pi)
+	(topline, bottomline) = drawLeafOutline(doc, outer, yo=-8, xo=8, xs=0.6, ys=0.65)
+	createHolesOnSpline(doc, topline, 5, 3.5, keepRadius=0.7, totalDistance=0.8, startOffset=0.15)
+	createHolesOnSpline(doc, bottomline, 5, 3.5, keepRadius=0.7, totalDistance=0.8, startOffset=0.15)
 
-	(topline, bottomline) = drawLeafOutline(doc, outer, yo=-6, xo=12, xs=0.4, ys=0.3)
-	createHolesOnSpline(doc, topline, 6, 2, angoff=pi/2)
-	createHolesOnSpline(doc, bottomline, 6, 2, angoff=pi/2)
+	(topline, bottomline) = drawLeafOutline(doc, outer, yo=-3, xo=12, xs=0.4, ys=0.3)
+	createHolesOnSpline(doc, topline, 3, 3, angoff=0, keepRadius=0.8, totalDistance=0.7, startOffset=0.1)
+	createHolesOnSpline(doc, bottomline, 3, 3, angoff=0, keepRadius=0.8, totalDistance=0.7, startOffset=0.1)
 
-
-	# (topline, bottomline) = drawLeafOutline(doc, outer, yo=-8, xo=24, xs=0.4, ys=0.1)
-	# createHolesOnSpline(doc, topline, 8, 1.5, angoff=pi)
-	# createHolesOnSpline(doc, bottomline, 8, 1.5, angoff=pi)
 
 
 def drawLeaf2(addTo):
@@ -145,11 +142,13 @@ def addOtherHalfOfShapeToLine(points):
 	# print(points);
 
 
-def createHolesOnSpline(doc, spline, frequency, radius, angoff=0):
-	halfRadius = radius * 0.5
-	inc = 1.0/(frequency)
-	for i in range(0,frequency+1):
-		val = i * inc
+def createHolesOnSpline(doc, spline, frequency, radius, angoff=0, keepRadius=0.5, totalDistance=1.0, startOffset=0.0):
+	kr = radius * keepRadius
+	vr = radius * (1-keepRadius)
+	print("keep={} var={}".format(kr, vr))
+	inc = totalDistance/(frequency-1)
+	for i in range(0,frequency):
+		val = (i * inc)+startOffset
 
 		# print(i, val)
 		# print(spline.Shape.Edges[0])
@@ -157,10 +156,14 @@ def createHolesOnSpline(doc, spline, frequency, radius, angoff=0):
 		# print(loc)
 		# print("----")
 		ang = (i/frequency)*(pi*2)+angoff
-		radius = halfRadius + ((cos(ang)+1)/2 * halfRadius)
+		mult = (cos(ang)+1)/2
+		radius = kr + (mult * vr)
+		dbstr = "ang={:.2f} radius={:.3f} cos={:.3f} cos/2={:.4f}".format(ang, radius, cos(ang), mult)
+		print(dbstr)
 
-		addBaseHolePart(doc, loc.x, loc.y, size=radius, lineWidth=0.25, addTo=holderLayers)
-		addCutterPart(doc, loc.x, loc.y, size=radius, lineWidth=0.25, addTo=cutterLayers, baseHeight=2)
+		addBaseHolePart(doc, loc.x, loc.y, size=radius+0.5, lineWidth=0.25, addTo=holderLayers)
+		addCutterPart(doc, loc.x, loc.y, size=radius, lineWidth=0.25, addTo=cutterLayers, baseHeight=baseHeight)
+		addPusherPart(doc, loc.x, loc.y, size=radius, lineWidth=0.25, addTo=pusherLayers, baseHeight=baseHeight)
 		# circle = doc.addObject("Part::Cylinder","circle-{}".format(i))
 		# circle.Radius = '{} mm'.format(radius)
 		# circle.Height = '3 mm'
@@ -171,3 +174,4 @@ def createHolesOnSpline(doc, spline, frequency, radius, angoff=0):
 drawLeaf(cutterLayers)
 groupHolesIntoStencil(cutterLayers, "leafCutter")
 groupHolesIntoStencil(holderLayers, "leafHolder")
+groupHolesIntoStencil(pusherLayers, "leafPusher")

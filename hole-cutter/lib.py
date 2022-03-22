@@ -34,10 +34,10 @@ def extrudeBase (shape, height, addTo):
 
 def addCutterPart (doc, x, y, size, lineWidth, addTo, baseHeight=2):
 
-	# lineWidth = 0.1
-	# size = 5
-
-	cutterHeight = baseHeight + baseHeight + 6.35 # 1/4" = 6.35mm which is thickest usual clay
+	# 1st baseHeight to add to it's own base
+	# 2nd baseHeight to get through the holder
+	# 1/4" = 6.35mm which is thickest usual clay
+	cutterHeight = baseHeight + baseHeight + 6.35 
 
 	outerSize = size
 	outerSupportSize = size + 0.5
@@ -71,6 +71,26 @@ def addCutterPart (doc, x, y, size, lineWidth, addTo, baseHeight=2):
 	addTo['outers'].append(outer)
 	addTo['outers'].append(outerSupport1)
 	addTo['outers'].append(outerSupport2)
+
+
+def addPusherPart (doc, x, y, size, lineWidth, addTo, baseHeight):
+
+	# 1st & 2nd baseHeight are the height on the cutter
+	# 3rd baseHeight to get beyond the base
+	# 1/4" = 6.35mm which is thickest usual clay
+	pusherHeight = baseHeight + baseHeight + baseHeight + 6.35 + 0.5 
+
+	poleSize = size - (lineWidth) - 0.5
+
+	pole = doc.addObject("Part::Cylinder","Pusher")
+	pole.Radius = '{} mm'.format(poleSize)
+	pole.Height = '{} mm'.format(pusherHeight)
+
+	placement = Placement(Vector(x,y,0),Rotation(Vector(0,0,1),1))
+
+	pole.Placement = placement
+
+	addTo['outers'].append(pole)
 
 
 def addBaseHolePart (doc, x, y, size, lineWidth, addTo):
@@ -138,16 +158,22 @@ def groupHolesIntoStencil(addTo, name):
 	elif len(addTo['bases']) == 1:
 		addTo['outers'].append( addTo['bases'][0] )
 
-	innerGroup = App.ActiveDocument.addObject("Part::MultiFuse", "InnerFuse")
-	innerGroup.Shapes = addTo['inners']
 
 	if len(addTo['outers']) > 1:
 		outerGroup = App.ActiveDocument.addObject("Part::MultiFuse", "OuterFuse")
 		outerGroup.Shapes = addTo['outers']
 	elif len(addTo['outers']) == 1:
 		outerGroup = addTo['outers'][0]
+	
+	if len(addTo['inners']) > 0:
+		innerGroup = App.ActiveDocument.addObject("Part::MultiFuse", "InnerFuse")
+		innerGroup.Shapes = addTo['inners']
 
-	# Cut the inner from the outer into the final stencil
-	stencil = App.activeDocument().addObject("Part::Cut",name)
-	stencil.Base = outerGroup
-	stencil.Tool = innerGroup
+		# Cut the inner from the outer into the final stencil
+		stencil = App.activeDocument().addObject("Part::Cut",name)
+		stencil.Base = outerGroup
+		stencil.Tool = innerGroup
+	else:
+		outerGroup.Label = name	
+
+	
