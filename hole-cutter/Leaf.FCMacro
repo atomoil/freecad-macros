@@ -15,7 +15,7 @@ cutterLayers = getEmptyLayers()
 holderLayers = getEmptyLayers()
 pusherLayers = getEmptyLayers()
 
-def drawLeaf(addTo):
+def drawLeaf(addTo, xscale=1.0, yscale=1.0):
 	print("drawLeaf...")
 
 	doc = App.activeDocument()
@@ -28,6 +28,9 @@ def drawLeaf(addTo):
 		App.Vector(47, 2, 0),
 		App.Vector(50, 0, 0),
 	]
+
+	for vec in outer:
+		vec.scale(xscale, yscale, 1.0)
 
 	(topline, bottomline) = drawLeafOutline(doc, outer, xo=-5, xs=1.4, ys=1.5)
 	(newlines,_) = Draft.upgrade([topline, bottomline], delete=True)
@@ -49,7 +52,6 @@ def drawLeaf(addTo):
 	(topline, bottomline) = drawLeafOutline(doc, outer, yo=-3, xo=12, xs=0.4, ys=0.3)
 	createHolesOnSpline(doc, topline, 3, 3, angoff=0, keepRadius=0.8, totalDistance=0.7, startOffset=0.1)
 	createHolesOnSpline(doc, bottomline, 3, 3, angoff=0, keepRadius=0.8, totalDistance=0.7, startOffset=0.1)
-
 
 
 def drawLeaf2(addTo):
@@ -161,9 +163,10 @@ def createHolesOnSpline(doc, spline, frequency, radius, angoff=0, keepRadius=0.5
 		dbstr = "ang={:.2f} radius={:.3f} cos={:.3f} cos/2={:.4f}".format(ang, radius, cos(ang), mult)
 		print(dbstr)
 
-		addBaseHolePart(doc, loc.x, loc.y, size=radius+0.5, lineWidth=0.25, addTo=holderLayers)
-		addCutterPart(doc, loc.x, loc.y, size=radius, lineWidth=0.25, addTo=cutterLayers, baseHeight=baseHeight)
-		addPusherPart(doc, loc.x, loc.y, size=radius, lineWidth=0.25, addTo=pusherLayers, baseHeight=baseHeight)
+		lineWidth = 0.45
+		addBaseHolePart(doc, loc.x, loc.y, size=radius+0.5, lineWidth=lineWidth, addTo=holderLayers)
+		addCutterPart(doc, loc.x, loc.y, size=radius, lineWidth=lineWidth, addTo=cutterLayers, baseHeight=baseHeight)
+		addPusherPart(doc, loc.x, loc.y, size=radius, lineWidth=lineWidth, addTo=pusherLayers, baseHeight=baseHeight)
 		# circle = doc.addObject("Part::Cylinder","circle-{}".format(i))
 		# circle.Radius = '{} mm'.format(radius)
 		# circle.Height = '3 mm'
@@ -171,7 +174,9 @@ def createHolesOnSpline(doc, spline, frequency, radius, angoff=0, keepRadius=0.5
 		# circle.Placement = placement
 
 
-drawLeaf(cutterLayers)
+# drawLeaf(cutterLayers)
+
+drawLeaf(cutterLayers, xscale=1.15)
 groupHolesIntoStencil(cutterLayers, "leafCutter")
 groupHolesIntoStencil(holderLayers, "leafHolder")
 groupHolesIntoStencil(pusherLayers, "leafPusher")
