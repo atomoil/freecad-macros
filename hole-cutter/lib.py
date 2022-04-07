@@ -75,12 +75,13 @@ def addCutterPart (doc, x, y, size, lineWidth, addTo, baseHeight=2):
 
 def addPusherPart (doc, x, y, size, lineWidth, addTo, baseHeight):
 
-	# 1st & 2nd baseHeight are the height on the cutter
-	# 3rd baseHeight to get beyond the base
+	# 1st & 2nd baseHeight are the height on the cutter and holder
+	# 3rd baseHeight to get beyond pusher base
 	# 1/4" = 6.35mm which is thickest usual clay
-	pusherHeight = baseHeight + baseHeight + baseHeight + 6.35 + 0.5 
+	# Add an extra margin
+	pusherHeight = baseHeight + baseHeight + baseHeight + 6.35 + 0.75 
 
-	poleSize = size - (lineWidth) - 0.5
+	poleSize = size - (lineWidth*2.5)
 
 	pole = doc.addObject("Part::Cylinder","Pusher")
 	pole.Radius = '{} mm'.format(poleSize)
