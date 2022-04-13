@@ -21,17 +21,24 @@ def main():
 	for i in range(len(selection)):
 		model = selection[i]
 		# debugBBound(model)
-		makeMoldBox(model)
+		# makeMoldBox(model, gutter=0, wall=2, base=18) # mold box cos it didn't fit on Prusa
+		makeMoldBox(model, gutter=18, wall=2, base=8) # for shapeways
 		model.Visibility = False
 
 
 	App.activeDocument().recompute()
 
 
-def makeMoldBox(model):
+def makeMoldBox(model, gutter=10, wall=2, base=10, heightOfShape=20):
 
-	gutter = 4
-	wall = 1
+	# gutter = 10
+	# wall = 2
+	# base = 10
+
+
+	# I know heightOfShape cos I made the base 20, but this should be calculated
+	# and generally the moldbox height made from the source being any height
+	# heightOfShape = 20 
 
 	(scale1, position1) = calculateSizeAndPosition(model, gutter+wall)
 	shape1 = Draft.make_clone(model,position1)
@@ -48,22 +55,36 @@ def makeMoldBox(model):
 	outer.Base = shape1
 	outer.Tool = shape2
 
-	(scale3, position3) = calculateSizeAndPosition(model, 0.0)
+	(scale3, position3) = calculateSizeAndPosition(model, 0.0, -base)
 	shape3 = Draft.make_clone(model,position3)
 	shape3.Label = "inner_shape-" + model.Label
 	shape3.Scale = scale3
+
 
 	outerandinner = App.ActiveDocument.addObject("Part::MultiFuse", "outerandinner-" + model.Label)
 	outerandinner.Shapes = [outer,shape3]
 
 
-	(scale4, position4) = calculateSizeAndPosition(model, -wall, -wall)
+	# need a new piece here to remove the base of the inner
+	(scale3a, position3) = calculateSizeAndPosition(model, 10.0, -(heightOfShape))
+	shape3a = Draft.make_clone(model,position3)
+	shape3a.Label = "inner_bottom-" + model.Label
+	shape3a.Scale = scale3a
+
+	# cut the bottom away from the inner (so it doesn't go below the outer)
+	outerandinnerRemovedBottom = App.activeDocument().addObject("Part::Cut","inner_bottom_cut-" + model.Label)
+	outerandinnerRemovedBottom.Base = outerandinner
+	outerandinnerRemovedBottom.Tool = shape3a
+
+
+	(scale4, position4) = calculateSizeAndPosition(model, -wall, -(wall+base))
 	shape4 = Draft.make_clone(model,position4)
 	shape4.Label = "inner_cut-" + model.Label
 	shape4.Scale = scale4
 
+
 	moldBox = App.activeDocument().addObject("Part::Cut","moldBox-" + model.Label)
-	moldBox.Base = outerandinner
+	moldBox.Base = outerandinnerRemovedBottom
 	moldBox.Tool = shape4
 	# place this one where the original was
 
