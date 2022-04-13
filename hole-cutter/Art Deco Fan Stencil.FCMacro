@@ -9,6 +9,7 @@ from lib import trig, addCutterPart, addBaseHolePart, appendPointsToSketch, grou
 baseHeight = 0.75 # 1.25
 
 holderLayers = { 'bases': [], 'inners': [], 'outers': [] }
+boxLayers = { 'bases': [], 'inners': [], 'outers': [] }
 
 
 def createLineOfHoles(ox,oy,angle,distance,total,offset=1):
@@ -46,56 +47,63 @@ def createFan1():
 	createFanBase(cx,cy,distanceInner+12,distanceMiddle+12,distanceOuter+12, baseHeight)
 
 
-def createFan2():
+def createFan2(createHolder=True, createBoxForMold=True):
 	cx = 10
 	cy = 95
 	distanceInner = 195
 	distanceMiddle = 165
 	distanceOuter = 150
 
-	createLineOfHoles(cx,cy+60,-12,distanceOuter,12)
-	createLineOfHoles(cx+7,cy+55.5,-10.75,distanceOuter-12.5,11,0.8)
-	createLineOfHoles(cx,cy+50,-9.5,distanceOuter+2,12,0.65)
+	if createHolder == True:
+		createLineOfHoles(cx,cy+60,-12,distanceOuter,12)
+		createLineOfHoles(cx+7,cy+55.5,-10.75,distanceOuter-12.5,11,0.8)
+		createLineOfHoles(cx,cy+50,-9.5,distanceOuter+2,12,0.65)
 
-	createLineOfHoles(cx+7,cy+41.5,-8,distanceMiddle,13)
-	createLineOfHoles(cx,cy+35,-6.5,distanceMiddle,13,0.8)
-	createLineOfHoles(cx+7,cy+31,-5,distanceMiddle,13,0.65)
+		createLineOfHoles(cx+7,cy+41.5,-8,distanceMiddle,13)
+		createLineOfHoles(cx,cy+35,-6.5,distanceMiddle,13,0.8)
+		createLineOfHoles(cx+7,cy+31,-5,distanceMiddle,13,0.65)
 
-	createLineOfHoles(cx,cy+20,-4,distanceInner,15)
-	createLineOfHoles(cx+7,cy+14,-3,distanceInner-14,14,0.8)
-	createLineOfHoles(cx,cy+9,-2,distanceInner,15,0.65)
-	createLineOfHoles(cx+7,cy+5,-1,distanceInner-14,14,0.45)
+		createLineOfHoles(cx,cy+20,-4,distanceInner,15)
+		createLineOfHoles(cx+7,cy+14,-3,distanceInner-14,14,0.8)
+		createLineOfHoles(cx,cy+9,-2,distanceInner,15,0.65)
+		createLineOfHoles(cx+7,cy+5,-1,distanceInner-14,14,0.45)
 
-	# createLineOfHoles(cx+7,cy,0,distanceInner-14,14,1.4) # middle
-	createLineOfHoles(cx,cy,0, distanceInner,15) # middle
+		# createLineOfHoles(cx+7,cy,0,distanceInner-14,14,1.4) # middle
+		createLineOfHoles(cx,cy,0, distanceInner,15) # middle
 
-	createLineOfHoles(cx+7,cy-5,1,distanceInner-14,14,0.45)
-	createLineOfHoles(cx,cy-9,2,distanceInner,15,0.65)
-	createLineOfHoles(cx+7,cy-14,3,distanceInner-14,14,0.8)
-	createLineOfHoles(cx,cy-20,4,distanceInner,15)
-	
-	createLineOfHoles(cx+7,cy-31,5,distanceMiddle,13,0.65)
-	createLineOfHoles(cx,cy-35,6.5,distanceMiddle,13,0.8)
-	createLineOfHoles(cx+7,cy-41.5,8,distanceMiddle,13)
+		createLineOfHoles(cx+7,cy-5,1,distanceInner-14,14,0.45)
+		createLineOfHoles(cx,cy-9,2,distanceInner,15,0.65)
+		createLineOfHoles(cx+7,cy-14,3,distanceInner-14,14,0.8)
+		createLineOfHoles(cx,cy-20,4,distanceInner,15)
+		
+		createLineOfHoles(cx+7,cy-31,5,distanceMiddle,13,0.65)
+		createLineOfHoles(cx,cy-35,6.5,distanceMiddle,13,0.8)
+		createLineOfHoles(cx+7,cy-41.5,8,distanceMiddle,13)
 
-	createLineOfHoles(cx,cy-50,9.5,distanceOuter+2,12,0.65)
-	createLineOfHoles(cx+7,cy-55.5,10.75,distanceOuter-12.5,11,0.8)
-	createLineOfHoles(cx,cy-60,12,distanceOuter,12)
+		createLineOfHoles(cx,cy-50,9.5,distanceOuter+2,12,0.65)
+		createLineOfHoles(cx+7,cy-55.5,10.75,distanceOuter-12.5,11,0.8)
+		createLineOfHoles(cx,cy-60,12,distanceOuter,12)
 
-	createFanBase(cx,cy,distanceInner+12,distanceMiddle+18,distanceOuter+12, baseHeight)
+		createFanBase(cx,cy,distanceInner+12,distanceMiddle+18,distanceOuter+12, baseHeight)
+
+	if createBoxForMold == True:
+		createFanBase(cx,cy,distanceInner+12,distanceMiddle+18,distanceOuter+12, 20.0, addScrewHoles=False, addTo=boxLayers)
 
 
-def createFanBase(cx,cy,distanceInner,distanceMiddle,distanceOuter, height):
 
-	createFanBasePart(cx,cy,12+1,60+8,distanceOuter, height, holderLayers)
-	createFanBasePart(cx,cy,8+1,40+8,distanceMiddle, height, holderLayers)
-	createFanBasePart(cx,cy,4+1,20+8,distanceInner, height, holderLayers)
+def createFanBase(cx,cy,distanceInner,distanceMiddle,distanceOuter, height, addScrewHoles=True, addTo=holderLayers):
+
+	createFanBasePart(cx,cy,12+1,60+8,distanceOuter, height, addTo)
+	createFanBasePart(cx,cy,8+1,40+8,distanceMiddle, height, addTo)
+	createFanBasePart(cx,cy,4+1,20+8,distanceInner, height, addTo)
 
 	# base for fixings
-	createPerpendicularBase(cx-30,cy-(60+8),30,(60+8)*2, height, holderLayers)
+	createPerpendicularBase(cx-30,cy-(60+8),30,(60+8)*2, height, addTo)
+	
 	# screw holes
-	addBaseHolePart(App.activeDocument(), cx-15,cy-40,1.5, 0, holderLayers)
-	addBaseHolePart(App.activeDocument(), cx-15,cy+40,1.5, 0, holderLayers)
+	if addScrewHoles == True:
+		addBaseHolePart(App.activeDocument(), cx-15,cy-40,1.5, 0, addTo)
+		addBaseHolePart(App.activeDocument(), cx-15,cy+40,1.5, 0, addTo)
 
 
 def createFanBasePart(x,y,angle,width,length,height,addTo):
@@ -129,3 +137,4 @@ def createFanBasePart(x,y,angle,width,length,height,addTo):
 #createFan1()
 createFan2()
 groupHolesIntoStencil(holderLayers, "Stencil")
+groupHolesIntoStencil(boxLayers, "Box")
